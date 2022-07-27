@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+option go_package = "../proto";
+
+package proto.lobby;
+
+message GetGuestReq {
+  int32 type = 1;
+  int32 uid = 2;
+}
+
+message GetGuestRes {
+  string code = 1;
+  string token = 2;
+  string uid = 3;
+  string nickName = 4;
+  int32 headIcon = 5;
+  int32 frame = 6;
+  int32 gameCoin = 7;
+  int32 strength = 8;
+  int32 rank1 = 9;
+  int32 rank2 = 10;
+}
+
+message updateGameCoinReq {
+  int32 uid = 1;
+  int32 gameCoin = 2;
+  string operate = 3;
+  int32 type = 4;
+}
+
+message updateGameCoinRes {
+  int32 uid = 1;
+  int32 coinBalance = 2;
+  string code = 3;
+}
+
+message updateEmbattleReq {
+  int32 uid = 1;
+  int32 teamId = 2;
+  int32 monsterId = 4;
+  int32 sequenceId = 5;
+  string code = 6;
+}
+
+message updatePropReq {
+  int32 uid = 1;
+  string itemName = 2;
+  string operate = 3;
+  int32 amount = 4;
+  string code = 5;
+}
+
+message updateEquipmentReq {
+  int32 uid = 1;
+  int32 equipmentUId = 2;
+  int32 equipmentId = 3;
+  int32 monsterId = 4;
+  string code = 5;
+}
+
+message updateMonsterExperienceReq {
+  int32 uid = 1;
+  int32 monsterUId = 2;
+  int32 monsterLevel = 3;
+  int32 monsterExp = 4;
+  string code = 5;
+}
