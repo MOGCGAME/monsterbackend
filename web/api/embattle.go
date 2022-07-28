@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
-	"github.com/lonng/nex"
 	"monster/db"
 	"monster/helper"
+
+	"github.com/gorilla/mux"
+	"github.com/lonng/nex"
 )
 
 func MakeEmbattleService() http.Handler { //布阵
@@ -19,7 +20,31 @@ func MakeEmbattleService() http.Handler { //布阵
 	router.Handle("/embattle/getCurrentEmbattle", nex.Handler(getCurrentEmbattleHandler)).Methods("POST")
 	router.Handle("/embattle/updateEmbattle", nex.Handler(updateEmbattleHandler)).Methods("POST")
 	router.Handle("/embattle/useEmbattle", nex.Handler(useEmbattleHandler)).Methods("POST")
+	router.Handle("/embattle/changeEmbattle", nex.Handler(changeEmbattleHandler)).Methods("POST")
 	return router
+}
+
+//弄换阵型按钮
+func changeEmbattleHandler(r *http.Request) (map[string]interface{}, error) {
+	uid, isValid := helper.VerifyJWT(r)
+	if !isValid {
+		return nil, errors.New("Invalid token")
+	}
+	reqJSON := helper.ReadParameters(r)
+	embattleInfo := db.GetEmbattle(uid, reqJSON["length"], reqJSON["teamId"])
+	if len(embattleInfo) > 0 {
+		db.UseEmbattle(uid, reqJSON["length"], reqJSON["teamId"])
+		embattleInfo = db.GetCurrentEmbattle(uid, reqJSON["length"])
+		payload := map[string]interface{}{
+			"embattleInfo": embattleInfo,
+		}
+		return payload, nil
+	} else {
+		payload := map[string]interface{}{
+			"error": "no such team",
+		}
+		return payload, nil
+	}
 }
 
 func getEmbattleHandler(r *http.Request) (map[string]interface{}, error) {
@@ -44,10 +69,17 @@ func getCurrentEmbattleHandler(r *http.Request) (map[string]interface{}, error) 
 	reqJSON := helper.ReadParameters(r)
 	embattleInfo := db.GetCurrentEmbattle(uid, reqJSON["length"])
 
-	payload := map[string]interface{}{
-		"embattleInfo": embattleInfo,
+	if len(embattleInfo) > 0 {
+		payload := map[string]interface{}{
+			"embattleInfo": embattleInfo,
+		}
+		return payload, nil
+	} else {
+		payload := map[string]interface{}{
+			"error": "no such team",
+		}
+		return payload, nil
 	}
-	return payload, nil
 }
 
 func updateEmbattleHandler(r *http.Request) (map[string]string, error) {

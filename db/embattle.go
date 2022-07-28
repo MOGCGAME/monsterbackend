@@ -45,19 +45,12 @@ func UpdateEmbattle(uid, length, teamid, monsteruid, monsterid, seqid string) { 
 }
 
 func UseEmbattle(uid, length, teamid string) {
-	if teamid == "1" {
-		_, err := db.Exec("Update `user_embattle` SET current = 0 WHERE user_id = " + uid + " AND length = " + length + " AND team_id = 2")
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		_, err := db.Exec("Update `user_embattle` SET current = 0 WHERE user_id = " + uid + " AND length = " + length + " AND team_id = 1")
-		if err != nil {
-			log.Println(err)
-		}
+	_, err := db.Exec("Update `user_embattle` SET current = 0 WHERE user_id = " + uid + " AND length = " + length + " AND team_id != " + teamid)
+	if err != nil {
+		log.Println(err)
 	}
 
-	_, err := db.Exec("Update `user_embattle` SET current = 1 WHERE user_id = " + uid + " AND length = " + length + " AND team_id = " + teamid)
+	_, err = db.Exec("Update `user_embattle` SET current = 1 WHERE user_id = " + uid + " AND length = " + length + " AND team_id = " + teamid)
 	if err != nil {
 		log.Println(err)
 	}
