@@ -175,7 +175,8 @@ func getPvPMatchingHandler(r *http.Request) (map[string]interface{}, error) {
 	rank2 := rank + 100
 	enemyEmbattle := db.GetPvPEnemyEmbattle(uid, reqJSON["length"], strconv.Itoa(rank1), strconv.Itoa(rank2), reqJSON["matching"])
 	if enemyEmbattle == nil {
-		payload := map[string]interface{}{"code": "waiting opponent"}
+		db.UpdateMatching(uid, "0")
+		payload := map[string]interface{}{"code": "30 seconds has been reached"}
 		return payload, nil
 	} else {
 		var enemyId string = enemyEmbattle[0]["user_id"]
@@ -364,28 +365,6 @@ type (
 		TargetMonsterElement  int                 `json:"targetMonsterElement"`
 		TargetMonsterNegative string              `json:"targetMonsterNegative"`
 	}
-	// TurnInfo struct {
-	// 	AtkMonsterUid         int                 `json:"atkMonsterUid"`
-	// 	AtkMonsterId          int                 `json:"atkMonsterId"`
-	// 	AtkMonsterSide        int               `json:"atkMonsterSide"`
-	// 	AtkMonsterSeq         int                 `json:"atkMonsterSeq"`
-	// 	AtkMonsterHp          int                 `json:"atkMonsterHp"`
-	// 	AtkMonsterDamage      int                 `json:"atkMonsterDamage"`
-	// 	AtkMonsterElement     int                 `json:"atkMonsterElement"`
-	// 	AtkMonsterSkill       int                 `json:"atkMonsterSkill"`
-	// 	AtkMonsterHeal        float64                `json:"atkMonsterHeal"`
-	// 	AtkMonsterNegative    string              `json:"atkMonsterNegative"`
-	// 	AtkMonsterPositive    string              `json:"atkMonsterPositive"`
-	// 	AtkMonsterTrigger     int                 `json:"atkMonsterTrigger"`
-	// 	AtkMultiple           []map[string]string `json:"atkmultiple"`
-	// 	AtkMonsterTriggered   int                 `json:"atkMonsterTriggered"`
-	// 	AtkMonsterMiss        int                 `json:"atkMonsterMiss"`
-	// 	TargetMonsterId       int                 `json:"targetMonsterId"`
-	// 	TargetMonsterSeq      int                 `json:"targetMonsterSeq"`
-	// 	TargetMonsterHp       int                 `json:"targetMonsterHp"`
-	// 	TargetMonsterElement  int                 `json:"targetMonsterElement"`
-	// 	TargetMonsterNegative string              `json:"targetMonsterNegative"`
-	// }
 )
 
 //开局状态
@@ -687,6 +666,11 @@ func getFullMatch(selfUid, selfEmbattleStartLen, enemyEmbattleStartLen int) []Ro
 		//Array of monster with speed ascending order 怪兽根据速度顺序
 		monstersWithSpeedOrder := getMonsterSpeed(battleInfo, prior, selfUid)
 		turnInfo = []TurnInfo{}
+		if x%10 == 0 {
+			for a := 0; a < len(battleInfo); a++ {
+				battleInfo[a]["monster_attack"] = strconv.Itoa(int(float64(helper.StringToInt(battleInfo[a]["monster_attack"])) * 1.5))
+			}
+		}
 		//根据speed生成turn， 从最后一个battleInfo逆序看起
 		for i := len(battleInfo) - 1; i >= 0; i-- {
 			//根据每个battleInfo
@@ -821,7 +805,6 @@ func calculateDamage(atkmonster, uid, selfUid int) TurnInfo {
 	for a := 0; a < len(battleInfo); a++ {
 		if helper.StringToInt(battleInfo[a]["monster_uid"]) == atkmonster {
 			atkmonsterInfo = battleInfo[a]
-
 			atkMonsterId = helper.StringToInt(atkmonsterInfo["monster_id"])
 			atkMonsterATK = helper.StringToInt(atkmonsterInfo["monster_attack"])           //攻击
 			atkMonsterDEF = helper.StringToInt(atkmonsterInfo["monster_defend"])           //防御

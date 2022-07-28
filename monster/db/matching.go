@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -73,15 +74,21 @@ func GetPvPEnemyEmbattle(uid, length, rank1, rank2, match string) []map[string]s
 		querystring1 = " AND user.rank1 >= "
 		querystring2 = " AND user.rank1 <= "
 	}
-	matching, err := db.QueryString("SELECT * FROM `user` WHERE uid != " + uid + " AND matching = " + match + querystring1 + rank1 + querystring2 + rank2)
-	if err != nil {
-		log.Println(err)
+
+	var matching []map[string]string
+
+	for stay, timeout := true, time.After(time.Second*30); stay; {
+		matching, _ = db.QueryString("SELECT * FROM `user` WHERE uid != " + uid + " AND matching = " + match + querystring1 + rank1 + querystring2 + rank2)
+		if len(matching) > 0 {
+			stay = false
+		}
+		select {
+		case <-timeout:
+			fmt.Println("30 seconds has been reached!")
+			stay = false
+		default:
+		}
 	}
-	// if len(matching) <= 0 {
-	// 	if found != 1 {
-	// 		GetPvPEnemyEmbattle(uid, length, rank1, rank2, match)
-	// 	}
-	// }
 	if len(matching) > 0 {
 		rand.Seed(time.Now().UnixNano())
 		enemy = rand.Intn(len(matching))
@@ -99,7 +106,7 @@ func GetPvPEnemyEmbattle(uid, length, rank1, rank2, match string) []map[string]s
 				log.Println(err)
 			}
 			if monster[0]["energy"] == "0" {
-				GetPvPEnemyEmbattle(uid, length, rank1, rank2, match)
+				return GetPvPEnemyEmbattle(uid, length, rank1, rank2, match)
 			}
 			enemyMonster = append(enemyMonster, monsterInfo)
 		}
